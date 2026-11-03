@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f1e9">
+  <title>Find your fit — Ring try-on</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #30271f;
+      --muted: #82786e;
+      --gold: #b9873f;
+      --gold-light: #f5dfad;
+      --paper: #f7f3ec;
+      --line: #e7dfd3;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100svh;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      color: var(--ink);
+      background: radial-gradient(ellipse at 50% 38%, #fffdf9 0, var(--paper) 68%);
+      font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+    }
+    .experience { width: min(100%, 1000px); }
+    header { text-align: center; margin-bottom: 24px; }
+    .eyebrow { margin: 0 0 10px; color: var(--gold); font-size: 10px; letter-spacing: .28em; text-transform: uppercase; font-weight: 700; }
+    h1 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(30px, 5vw, 46px); line-height: 1.08; font-weight: 400; letter-spacing: -.035em; }
+    .intro { color: var(--muted); margin: 12px 0 0; font-size: 14px; }
+    .stage {
+      position: relative;
+      overflow: hidden;
+      height: clamp(410px, 60vw, 510px);
+      border: 1px solid rgba(154, 127, 91, .15);
+      border-radius: 8px;
+      background: linear-gradient(145deg, rgba(255,255,255,.82), rgba(246,239,228,.72));
+      box-shadow: 0 24px 70px rgba(83, 61, 36, .08), inset 0 1px rgba(255,255,255,.9);
+      isolation: isolate;
+    }
+    .stage::before, .stage::after { content:""; position:absolute; pointer-events:none; border-radius:50%; filter:blur(1px); }
+    .stage::before { width:360px; height:360px; background:rgba(235,216,185,.22); top:-230px; right:-80px; }
+    .stage::after { width:300px; height:300px; background:rgba(255,255,255,.7); bottom:-230px; left:-60px; }
+    .stage-label { position:absolute; z-index:3; top:22px; left:24px; color:#a69a8a; font-size:9px; letter-spacing:.2em; text-transform:uppercase; }
+    .hand-wrap {
+      position:absolute;
+      height:390px;
+      width:330px;
+      left:50%; bottom:10px;
+      transform:translateX(-50%);
+      z-index:2;
+    }
+    .hand-anchor {
+      position:absolute;
+      left:36.9%;
+      top:48.7%;
+      width:15%;
+      height:8%;
+      pointer-events:none;
+      z-index:4;
+    }
+    .hand { filter:drop-shadow(0 18px 18px rgba(116, 77, 50, .13)); }
+    .hand { width:100%; height:100%; overflow:visible; }
+    .hand-outline { fill:url(#skin); stroke:#c98f70; stroke-width:1.5; stroke-linejoin:round; }
+    .hand-shade { fill:url(#shade); opacity:.58; }
+    .finger-line { fill:none; stroke:#d59e7e; stroke-width:1.1; opacity:.58; stroke-linecap:round; }
+    .nail { fill:#f3c5af; stroke:#dba58e; stroke-width:.9; }
+    .ring {
+      position:absolute;
+      z-index:3;
+      left:140%; top:48%;
+      width:82px; height:82px;
+      border:0; padding:0;
+      background:transparent;
+      transform:translate(-50%,-50%) rotate(-12deg);
+      cursor:pointer;
+      touch-action:manipulation;
+      transition:left 950ms cubic-bezier(.2,.75,.25,1), top 950ms cubic-bezier(.2,.75,.25,1), transform 950ms cubic-bezier(.2,.75,.25,1), filter 450ms ease;
+      filter:drop-shadow(0 9px 7px rgba(100,64,22,.2));
+      -webkit-tap-highlight-color:transparent;
+    }
+    .ring:hover { filter:drop-shadow(0 12px 9px rgba(100,64,22,.3)); }
+    .ring:focus-visible { outline:2px solid #a7722f; outline-offset:5px; border-radius:50%; }
+    .ring:disabled { cursor:default; }
+    .ring-svg { width:100%; height:100%; overflow:visible; }
+    .ring-band { fill:none; stroke:url(#band); stroke-width:9; }
+    .ring-edge { fill:none; stroke:#8b5b22; stroke-width:1; opacity:.8; }
+    .ring-glint { fill:none; stroke:rgba(255,248,220,.95); stroke-width:1.7; stroke-linecap:round; }
+    .setting { fill:url(#setting); stroke:#a27434; stroke-width:1.5; }
+    .stone { fill:url(#stone); stroke:#fff8e9; stroke-width:2; }
+    .stone-facet { fill:none; stroke:rgba(255,255,255,.92); stroke-width:1; }
+    .hint { position:absolute; z-index:3; right:24px; bottom:22px; display:flex; align-items:center; gap:9px; color:#887b6b; font-size:11px; letter-spacing:.04em; transition:opacity .3s ease; }
+    .hint-dot { display:grid; place-items:center; width:25px; height:25px; border:1px solid #d9c8ac; border-radius:50%; color:#a77a3c; font-size:14px; }
+    .placed-note { position:absolute; z-index:3; top:22px; right:24px; color:#a77a3c; font-family:Georgia,serif; font-size:15px; opacity:0; transition:opacity .5s ease; }
+    .stage.is-placed .ring { left:32.5%; top:48.7%; transform:translate(-50%,-50%) rotate(90deg) scale(.42,.62); filter:drop-shadow(0 2px 2px rgba(100,64,22,.3)); }
+    .stage.is-placed .hint { opacity:0; }
+    .stage.is-placed .placed-note { opacity:1; }
+    .controls { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:17px 2px 0; }
+    .caption { margin:0; color:var(--muted); font-size:12px; }
+    .caption strong { color:#4f4438; font-weight:600; }
+    .reset {
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 15px; border:1px solid #d9cbb7; border-radius:3px;
+      background:rgba(255,255,255,.5); color:#665746; font:600 10px inherit;
+      font-size:10px; letter-spacing:.13em; text-transform:uppercase; cursor:pointer;
+      transition:background .2s ease, border-color .2s ease, transform .2s ease;
+    }
+    .reset:hover { background:#fff; border-color:#b89868; }
+    .reset:active { transform:scale(.97); }
+    .reset:focus-visible { outline:2px solid #a7722f; outline-offset:3px; }
+    .reset svg { width:13px; height:13px; }
+    @media (max-width:650px) {
+      body { padding:24px 16px; }
+      header { margin-bottom:19px; }
+      .stage { height:min(116vw, 470px); min-height:400px; }
+      .stage-label { left:16px; top:16px; }
+      .hand-wrap { width:290px; height:350px; bottom:5px; }
+      .ring { width:64px; height:64px; left:116%; top:39%; }
+      .hint { right:14px; bottom:15px; font-size:10px; }
+    }
+    @media (max-width:360px) {
+      body { padding-inline:12px; }
+      .stage { min-height:380px; }
+      .hand-wrap { width:270px; height:325px; }
+      .ring { width:58px; height:58px; left:116%; }
+      .hint { gap:6px; font-size:9px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior:auto !important; transition-duration:.01ms !important; animation-duration:.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="experience">
+    <header>
+      <h1>HAPPY 2 💍</h1>
+    </header>
+
+    <section class="stage" id="stage" aria-label="Interactive ring try-on">
+      <div class="hand-wrap" aria-hidden="true">
+        <svg class="hand" viewBox="0 0 330 390" role="img">
+          <defs>
+            <linearGradient id="skin" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#f4c9ae"/><stop offset=".48" stop-color="#e9b394"/><stop offset="1" stop-color="#d99c7e"/>
+            </linearGradient>
+            <linearGradient id="shade" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#b9745d" stop-opacity=".28"/><stop offset=".45" stop-color="#fff0df" stop-opacity=".12"/><stop offset="1" stop-color="#a76350" stop-opacity=".3"/>
+            </linearGradient>
+          </defs>
+          <!-- A softly illustrated palm with distinct fingers; the fourth finger is the ring finger. -->
+          <path class="hand-outline" d="M84 389 C80 367 73 342 68 318 C61 286 53 263 43 238 C34 215 25 194 20 177 C15 161 18 148 28 144 C39 139 47 148 55 165 L83 220 L75 98 C74 82 80 72 91 72 C102 72 108 82 109 98 L118 210 L115 48 C115 31 122 21 134 21 C146 21 153 31 153 48 L157 207 L164 33 C165 16 172 7 184 8 C196 9 202 19 201 36 L198 211 L212 70 C214 54 222 46 233 48 C245 50 250 60 247 76 L237 225 C245 204 252 184 261 172 C269 160 279 158 287 165 C295 172 293 184 287 197 L264 254 C253 281 253 315 253 342 C253 359 251 376 248 390 Z"/>
+          <path class="hand-shade" d="M89 389 C82 348 69 303 56 267 C45 235 28 192 23 170 C21 161 26 154 32 154 C41 154 47 173 57 194 L91 259 L88 91 C88 82 92 78 97 79 C103 80 104 87 104 97 L116 253 L126 42 C126 32 130 28 136 29 C142 30 144 36 144 47 L153 253 L176 27 C177 18 181 14 187 15 C193 16 194 22 193 33 L189 255 L224 67 C226 58 230 55 235 57 C241 59 241 65 239 75 L221 259 L273 170 C279 161 285 166 284 174 C283 184 261 228 247 258 C230 294 231 346 231 389 Z"/>
+          <path class="finger-line" d="M107 176 Q119 181 133 177 M151 169 Q165 175 179 170 M197 174 Q211 180 225 175 M78 255 Q91 250 104 256 M116 246 Q132 252 148 247 M157 243 Q174 249 190 244 M197 249 Q212 255 227 250"/>
+          <path class="nail" d="M122 38 Q123 25 134 25 Q145 26 145 40 L146 68 Q134 75 123 67 Z"/>
+          <path class="nail" d="M169 25 Q170 12 183 12 Q195 13 194 28 L193 57 Q180 63 168 55 Z"/>
+          <path class="nail" d="M219 65 Q221 52 233 53 Q244 55 242 69 L238 94 Q226 98 216 90 Z"/>
+        </svg>
+        <span class="hand-anchor" id="indexAnchor"></span>
+        <button class="ring" id="ring" type="button" aria-label="Try the ring on" aria-describedby="ringHint">
+          <svg class="ring-svg" viewBox="0 0 100 100" aria-hidden="true">
+            <defs>
+              <linearGradient id="band" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#f8e5b5"/><stop offset=".2" stop-color="#a9702d"/><stop offset=".42" stop-color="#f8d98d"/><stop offset=".7" stop-color="#bd873e"/><stop offset=".9" stop-color="#fff0bd"/><stop offset="1" stop-color="#9a6428"/>
+              </linearGradient>
+              <linearGradient id="setting" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff0bd"/><stop offset="1" stop-color="#b67e31"/></linearGradient>
+              <radialGradient id="stone" cx="35%" cy="25%"><stop stop-color="#fff"/><stop offset=".38" stop-color="#fffdf8"/><stop offset=".72" stop-color="#dce8e8"/><stop offset="1" stop-color="#a6b3b4"/></radialGradient>
+            </defs>
+            <ellipse class="ring-band" cx="50" cy="57" rx="27" ry="30"/>
+            <ellipse class="ring-edge" cx="50" cy="57" rx="27" ry="30" transform="translate(0 3)"/>
+            <path class="ring-glint" d="M29 47 C32 34 42 28 52 27"/>
+            <path class="ring-glint" d="M70 68 C67 77 60 83 52 86"/>
+            <path class="setting" d="M39 35 Q36 30 40 26 L45 17 Q50 12 55 17 L61 27 Q64 32 60 36 L57 42 L42 41 Z"/>
+            <path class="stone" d="M43 27 L48 18 L55 19 L59 28 L51 36 Z"/>
+            <path class="stone-facet" d="M43 27 L51 27 L59 28 M48 18 L51 27 L51 36 M55 19 L51 27"/>
+          </svg>
+        </button>
+      </div>
+      <div class="hint" id="ringHint"><span class="hint-dot">↗</span> Tap the ring to try it on</div>
+    </section>
+
+    <div class="controls">
+      <p class="caption" aria-hidden="true"></p>
+      <button class="reset" id="reset" type="button" aria-label="Reset ring to its starting position">
+        <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 6a5.3 5.3 0 1 1-.1 4M3 2v4h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Reset
+      </button>
+    </div>
+  </main>
+  <script>
+    const stage = document.getElementById('stage');
+    const ring = document.getElementById('ring');
+    const reset = document.getElementById('reset');
+    function setRingPlaced(placed) {
+      stage.classList.toggle('is-placed', placed);
+      ring.disabled = placed;
+      ring.setAttribute('aria-label', placed ? 'Ring placed on ring finger' : 'Try the ring on');
+    }
+
+    ring.addEventListener('click', () => {
+      if (stage.classList.contains('is-placed')) return;
+      setRingPlaced(true);
+    });
+
+    reset.addEventListener('click', () => {
+      setRingPlaced(false);
+    });
+  </script>
+</body>
+</html>
